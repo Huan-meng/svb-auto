@@ -13,6 +13,7 @@ from typing import List, Dict, Tuple, Union, Optional
 from collections import OrderedDict
 import logging
 import requests
+import ctypes
 
 MAX_FAILURE_COUNT = 50 # 最大失败次数
 
@@ -124,6 +125,8 @@ class App:
         if not isinstance(test_screenshot, Image.Image):
             raise ValueError("无法获取设备屏幕截图，请检查设备连接是否正常。")
         self.image_width, self.image_height = test_screenshot.size
+        # 设置命令行窗口标题
+        ctypes.windll.kernel32.SetConsoleTitleA(f"{port}-svb-auto".encode('utf-8'))
         self.map_handlers = {
             AppState.UNKNOWN: self.detect_state,
             AppState.EXITED: self.on_exited,
