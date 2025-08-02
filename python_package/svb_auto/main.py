@@ -198,6 +198,7 @@ class App:
                 break
             if current_state == AppState.UNKNOWN:
                 self.logger.warning(f"未知状态: {current_state}, 执行操作")
+                self.device.app_start(self.app_name)
             else:
                 self.logger.info(f"当前状态: {current_state}, 执行操作")
 
@@ -692,7 +693,7 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int, default=16384, help="设备连接端口")
     parser.add_argument("--img_dir", type=str, default="imgs_chs_1920_1080", help="模板图片目录")
     parser.add_argument("--screen_interval", type=float, default=1.0, help="屏幕截图间隔时间")
-    parser.add_argument("--app_name", type=str, default=None, help="应用包名（可选）")
+    parser.add_argument("--app_name", type=str, default="com.netease.yzs", help="应用包名（可选）")
     parser.add_argument("--skip_mode", action='store_true', help="是否启用空过模式，跳过玩家回合的操作")
     parser.add_argument("--global_server", action='store_true', help="服务器: False国服, True国际服繁体")
     parser.add_argument("--enable-auto-skip", action='store_true', help="启用自动检测分组切换空过模式功能")
