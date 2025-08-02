@@ -209,6 +209,7 @@ class App:
                 if any(keyword in str(e).lower() for keyword in ["adb", "device", "uiautomator", "screen"]) :
                     self.send_qmsg(f"SVB-AUTO：设备操作错误 - {str(e)}")
                     self.device.app_start(self.app_name)
+                    self.device.wait_activity(f"{self.app_name}.MainActivity", timeout=10)
                 current_state = AppState.UNKNOWN
 
             time.sleep(self.screen_interval)  # 等待一段时间，避免过于频繁的操作
@@ -217,6 +218,7 @@ class App:
                 if self.fail_count >= MAX_FAILURE_COUNT:
                     self.logger.warning("连续失败次数过多，尝试点击屏幕中央")
                     self.device.app_start(self.app_name)
+                    self.device.wait_activity(f"{self.app_name}.MainActivity", timeout=10)
                     # 发送通知到Qmsg
                     if self.fail_count >= MAX_FAILURE_COUNT * 2:
                         self.send_qmsg("SVB-AUTO：连续失败次数过多，尝试点击屏幕。")
