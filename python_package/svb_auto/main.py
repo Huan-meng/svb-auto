@@ -177,10 +177,11 @@ class App:
             self.logger.info("Qmsg通知已发送，跳过")
             return False
 
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
         qmsg_url = f"https://qmsg.zendee.cn/jsend/{self.qmsg_key}"
         payload = {"msg": message}
         try:
-            response = requests.post(qmsg_url, json=payload)
+            response = requests.post(qmsg_url, json=payload, headers=headers)
             response.raise_for_status()
             self.logger.info(f"Qmsg通知发送成功，状态码: {response.status_code}")
             self.qmsg_sent = True
@@ -206,10 +207,7 @@ class App:
             except Exception as e:
                 self.logger.error(f"执行操作时发生错误: {e}")
                 # 检测ADB相关错误
-                if any(keyword in str(e).lower() for keyword in ["adb", "device", "uiautomator", "screen"]) :
-                    self.send_qmsg(f"SVB-AUTO：设备操作错误 - {str(e)}")
-                    self.device.app_start(self.app_name)
-                    self.device.wait_activity(f"{self.app_name}.MainActivity", timeout=10)
+                self.send_qmsg(f"SVB-AUTO：执行操作时发生错误：{str(e)}")
                 current_state = AppState.UNKNOWN
 
             time.sleep(self.screen_interval)  # 等待一段时间，避免过于频繁的操作
@@ -217,11 +215,14 @@ class App:
                 self.fail_count += 1
                 if self.fail_count >= MAX_FAILURE_COUNT:
                     self.logger.warning("连续失败次数过多，尝试点击屏幕中央")
-                    self.device.app_start(self.app_name)
-                    self.device.wait_activity(f"{self.app_name}.MainActivity", timeout=10)
                     # 发送通知到Qmsg
                     if self.fail_count >= MAX_FAILURE_COUNT * 2:
-                        self.send_qmsg("SVB-AUTO：连续失败次数过多，尝试点击屏幕。")
+                        self.logger.warning("连续失败次数过多，尝试重启应用")
+                        self.send_qmsg("SVB-AUTO：连续失败次数过多，尝试重启应用。")
+                        self.device.app_stop(self.app_name)
+                        self.device.app_start(self.app_name)
+                        self.device.wait_activity(f"{self.app_name}.MainActivity", timeout=30)
+                        self.fail_count = 0
                     self.click_center()
                     current_state = AppState.UNKNOWN # 重置状态为 UNKNOWN
             else:
