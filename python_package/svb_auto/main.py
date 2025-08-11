@@ -106,6 +106,7 @@ class App:
             enable_auto_skip: bool = False,
             logger: logging.Logger = logging.getLogger("svb_auto"),
             qmsg_key: str = None):
+        self.ip = ip
         self.port = port
         self.device = connect_with_adbutils(ip, port)
         self.detector = Detector(img_dir=img_dir)
@@ -208,8 +209,8 @@ class App:
             except Exception as e:
                 self.logger.error(f"执行操作时发生错误: {e}")
                 # 尝试重连
-                self.send_qmsg(f"{self.port}-SVB-AUTO：执行操作时发生错误：{str(e)}，尝试重连")
-                self.device = connect_with_adbutils(ip, port)
+                self.send_qmsg(f"{self.port}-SVB-AUTO：执行操作时发生错误：{str(e)}\n尝试重连。")
+                self.device = connect_with_adbutils(self.ip, self.port)
 
                 current_state = AppState.UNKNOWN
 
