@@ -106,6 +106,7 @@ class App:
             enable_auto_skip: bool = False,
             logger: logging.Logger = logging.getLogger("svb_auto"),
             qmsg_key: str = None):
+        self.port = port
         self.device = connect_with_adbutils(ip, port)
         self.detector = Detector(img_dir=img_dir)
         self.screen_interval = screen_interval
@@ -206,8 +207,10 @@ class App:
                 current_state = func()
             except Exception as e:
                 self.logger.error(f"执行操作时发生错误: {e}")
-                # 检测ADB相关错误
-                self.send_qmsg(f"SVB-AUTO：执行操作时发生错误：{str(e)}")
+                # 尝试重连
+                self.send_qmsg(f"{self.port}-SVB-AUTO：执行操作时发生错误：{str(e)}，尝试重连")
+                self.device = connect_with_adbutils(ip, port)
+
                 current_state = AppState.UNKNOWN
 
             time.sleep(self.screen_interval)  # 等待一段时间，避免过于频繁的操作
@@ -218,7 +221,7 @@ class App:
                     # 发送通知到Qmsg
                     if self.fail_count >= MAX_FAILURE_COUNT * 2:
                         self.logger.warning("连续失败次数过多，尝试重启应用")
-                        self.send_qmsg("SVB-AUTO：连续失败次数过多，尝试重启应用。")
+                        self.send_qmsg(f"{self.port}-SVB-AUTO：连续失败次数过多，尝试重启应用。")
                         self.device.app_stop(self.app_name)
                         self.device.app_start(self.app_name)
                         self.device.wait_activity(f"{self.app_name}.MainActivity", timeout=30)
