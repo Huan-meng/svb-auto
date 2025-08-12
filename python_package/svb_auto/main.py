@@ -14,6 +14,7 @@ from collections import OrderedDict
 import logging
 import requests
 import ctypes
+import re
 
 MAX_FAILURE_COUNT = 50 # 最大失败次数
 
@@ -178,6 +179,13 @@ class App:
         if self.qmsg_sent:
             self.logger.info("Qmsg通知已发送，跳过")
             return False
+
+        # 过滤 URL
+        message = re.sub(r'https?://\S+', '[URL已过滤]', message)
+        # 过滤 IPv4 地址
+        message = re.sub(r'\b(?:\d{1,3}\.){3}\d{1,3}\b', '[IP已过滤]', message)
+        # 过滤连续5位以上的数字串
+        message = re.sub(r'\d{6,}', '[数字串已过滤]', message)
 
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
         qmsg_url = f"https://qmsg.zendee.cn/jsend/{self.qmsg_key}"
